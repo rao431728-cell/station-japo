@@ -1,0 +1,23 @@
+.research-workspace h2{font-size:1.5rem;margin-bottom:18px}
+.research-workspace label,.research-dialog label{display:grid;gap:7px;font-size:.875rem}
+.research-workspace textarea{min-height:100px}
+.research-examples{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 20px}
+.research-examples .btn{font-size:.875rem;white-space:normal;text-align:left;height:auto}
+.research-filter-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:18px 0}
+.research-workspace .notice{margin:18px 0}.research-workspace .button-row{flex-wrap:wrap;margin:14px 0;gap:8px}
+.research-dialog{width:min(94vw,850px)!important;max-width:850px!important;max-height:90dvh;overflow-y:auto}
+.research-source{border:1px solid var(--border);padding:18px;border-radius:12px;display:grid;gap:10px;margin:10px 0;min-width:0}
+.research-source a,.research-source blockquote{overflow-wrap:anywhere;white-space:pre-wrap}.research-source a{color:var(--primary)}
+.research-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.research-facts>div{display:grid;gap:5px;border-bottom:1px solid var(--border);padding:10px 0;overflow-wrap:anywhere}
+.research-field-edit{display:grid;grid-template-columns:1.2fr .8fr 1fr;gap:12px;margin:8px 0}
+.research-field-edit label{min-width:0}.research-dialog select{width:100%;min-width:0}
+.research-evidence small{font-size:.8125rem}.inference{border-left:3px solid #ad8bce;padding-left:10px;color:#c8afdF}
+.research-stage{display:grid;gap:5px;padding:12px;border-bottom:1px solid var(--border);font-size:.875rem}
+.research-history{width:100%;text-align:left}.research-history>div{flex:1;min-width:0;overflow-wrap:anywhere}
+.research-result{cursor:default;display:flex;flex-direction:column;gap:8px;min-width:0}.research-result .score{position:static}
+.research-result p{margin:0;overflow-wrap:anywhere}.research-routes{display:grid;gap:3px;font-size:.875rem}
+.research-result small{font-size:.8125rem}.research-workspace summary{cursor:pointer;padding:8px 0}
+.research-dialog ol{padding-left:22px;display:grid;gap:12px}
+@media(max-width:650px){.research-field-edit{grid-template-columns:1fr}.research-filter-grid{grid-template-columns:1fr 1fr}.research-workspace .row-between{flex-wrap:wrap;gap:10px}.research-history{flex-wrap:wrap}}
+@media(max-width:400px){.research-filter-grid{grid-template-columns:1fr}}

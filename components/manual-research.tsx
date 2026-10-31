@@ -1,0 +1,25 @@
+"use client";
+import { useState } from "react";
+import { Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { fields, sourceTypes, resultSchema, type ResearchField, type ResearchResult, type ResearchSource } from "@/lib/research-model";
+import { ResearchEvidence } from "./research-evidence";
+import { toast } from "sonner";
+const blankSource=():ResearchSource=>({id:crypto.randomUUID(),title:"",url:"",type:"Official Club Website",excerpt:"",checkedAt:new Date().toISOString(),checkedBy:"user"});
+export function ManualResearch({onClose,onSave,initialResult}:{onClose:()=>void;onSave:(r:ResearchResult)=>Promise<boolean>;initialResult?:ResearchResult}) {
+  const [sources,setSources]=useState(initialResult?.sources.length?structuredClone(initialResult.sources):[blankSource()]);
+  const [facts,setFacts]=useState<ResearchResult["facts"]>(structuredClone(initialResult?.facts||{}));
+  const [notes,setNotes]=useState(initialResult?.notes||"");const [checked,setChecked]=useState(false);const [preview,setPreview]=useState<ResearchResult|null>(null);const [busy,setBusy]=useState(false);
+  function update(key:ResearchField,patch:Partial<NonNullable<ResearchResult["facts"][ResearchField]>>) {setFacts(f=>({...f,[key]:{value:"",kind:"FACT",sourceIds:[sources[0].id],...f[key],...patch}}));}
+  function review(){try {const r=resultSchema.parse({id:initialResult?.id||crypto.randomUUID(),savedContactId:initialResult?.savedContactId,facts:Object.fromEntries(Object.entries(facts).filter(([,v])=>v?.value.trim()).map(([k,v])=>[k,{...v,value:v!.value.trim(),sourceIds:v!.kind==="FACT"?v!.sourceIds:[]}])) ,sources:checked?sources.map(s=>({...s,checkedBy:"user",checkedAt:new Date().toISOString()})):sources,notes,reviewedAt:checked?new Date().toISOString():undefined});setPreview(r);}catch(e){toast.error(e instanceof Error ? e.message : "Check the evidence fields");}}
+  return <Dialog open onOpenChange={v=>!v&&!busy&&onClose()}><DialogContent className="research-dialog"><DialogHeader><DialogTitle>{preview?"Review your sourced finding":"Add a manual research finding"}</DialogTitle><DialogDescription>Only enter information you found. Leave unknown fields blank. Every fact must point to a source; guesses stay labeled as inference.</DialogDescription></DialogHeader>
+  {preview ? <><ResearchEvidence result={preview}/><div className="button-row"><button className="btn" disabled={busy} onClick={()=>setPreview(null)}>Back to edit</button><button className="btn primary" disabled={busy} onClick={async()=>{setBusy(true);if(await onSave(preview))onClose();setBusy(false);}}>Save finding for review</button></div></> : <>
+  <h3>Source evidence</h3>{sources.map((s,i)=><fieldset className="research-source" key={s.id}><legend>Source {i+1}</legend>{([['title','Source title'],['url','Public HTTPS source URL'],['excerpt','Information found / short evidence extract']] as const).map(([key,label])=><label key={key}>{label}{key==="excerpt"?<textarea value={s[key]} onChange={e=>setSources(v=>v.map((x,n)=>n===i?{...x,[key]:e.target.value}:x))}/>:<input value={s[key]} onChange={e=>setSources(v=>v.map((x,n)=>n===i?{...x,[key]:e.target.value}:x))}/>}</label>)}<label>Source type<select value={s.type} onChange={e=>setSources(v=>v.map((x,n)=>n===i?{...x,type:e.target.value as ResearchSource["type"]}:x))}>{sourceTypes.map(t=><option key={t}>{t}</option>)}</select></label><small>Record created {new Date(s.checkedAt).toLocaleString()}. This is your source classification, not automatic authentication.</small></fieldset>)}
+  <button className="btn" disabled={sources.length>=10} onClick={()=>setSources(s=>[...s,blankSource()])}>Add another source</button>
+  <h3>Fields found</h3><p className="muted">Use Yes / No for team fields; blank means unknown. Person may be a named football department if no staff member is published.</p>
+  {fields.map(key=><div className="research-field-edit" key={key}><label>{key}<input value={facts[key]?.value||""} onChange={e=>update(key,{value:e.target.value})}/></label><label>Evidence type for {key}<select value={facts[key]?.kind||"FACT"} onChange={e=>update(key,{kind:e.target.value as "FACT"|"INFERENCE"})}><option>FACT</option><option>INFERENCE</option></select></label><label>Source for {key}<select disabled={facts[key]?.kind==="INFERENCE"} value={facts[key]?.sourceIds[0]||sources[0].id} onChange={e=>update(key,{sourceIds:[e.target.value]})}>{sources.map((s,i)=><option key={s.id} value={s.id}>{i+1}. {s.title||"Untitled source"}</option>)}</select></label></div>)}
+  <label>Research notes<textarea value={notes} onChange={e=>setNotes(e.target.value)}/></label>
+  <label className="flex items-start gap-2"><Checkbox checked={checked} onCheckedChange={v=>setChecked(v===true)}/>I checked the source pages today and confirm they explicitly support every field labeled FACT. This is my manual verification, not an automated check.</label>
+  <button className="btn primary" onClick={review}>Review finding</button></>}
+  </DialogContent></Dialog>;
+}

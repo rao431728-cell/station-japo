@@ -1,0 +1,18 @@
+import assert from "node:assert/strict";
+import {runInNewContext} from "node:vm";
+import {bridgeDocument} from "./bridge";
+import {STATION_ORIGIN} from "../lib/companion-contract";
+const channel="11111111-1111-4111-8111-111111111111",responses:any[]=[];
+const opener={postMessage:(data:any,origin:string)=>responses.push({data,origin})};
+let receive:(event:any)=>Promise<void>,calls=0;
+const status={textContent:""};
+const script=bridgeDocument([STATION_ORIGIN]).html.match(/<script[^>]*>([\s\S]*?)<\/script>/)![1];
+runInNewContext(script,{location:{hash:`#${channel}`},document:{getElementById:()=>status},window:{opener,addEventListener:(_name:string,callback:typeof receive)=>receive=callback},AbortSignal,fetch:async(path:string,init:RequestInit)=>{calls++;assert.equal(path,"/v1/health");assert.equal(init.credentials,"omit");return {ok:true,status:200,json:async()=>({available:true})};}});
+const request={protocol:"station-japo-bridge-v1",channel,type:"request",id:channel,path:"/v1/health",method:"GET",body:"",token:"a".repeat(64)};
+const send=(data:any=request,origin=STATION_ORIGIN,source:any=opener)=>receive!({data,origin,source});
+await send(request,"https://evil.example");await send(request,STATION_ORIGIN,{});await send({...request,channel:"wrong"});assert.equal(calls,0);assert.equal(responses.length,0);
+await send({...request,type:"hello"});assert.equal(responses.pop().data.type,"ready");
+await send({...request,path:"https://evil.example"});assert.equal(calls,0);assert.equal(responses.pop().data.data.error.code,"INVALID_REQUEST");
+await send({...request,token:"bad"});assert.equal(calls,0);
+await send();assert.equal(calls,1);assert.equal(responses.at(-1).origin,STATION_ORIGIN);assert.equal(responses.at(-1).data.status,200);
+console.log("Bridge tests passed: exact origin, opener, channel, token and route checks.");

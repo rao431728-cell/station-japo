@@ -1,0 +1,22 @@
+.world-map {
+  margin-top: 20px;
+  background: radial-gradient(ellipse at center, #1c345029, transparent 70%);
+  border-radius: 8px;
+}
+.world-map svg {
+  width: 100%;
+  max-height: 350px;
+  display: block;
+}
+.world-map small {
+  font-size: 11px;
+  text-align: right;
+  color: #60728d;
+  margin: 5px 10px;
+}
+.world-map g[role="button"]:focus {
+  outline: 1px solid #6e97d8;
+}
+.world-map g[role="button"]:hover circle:last-of-type {
+  fill: white;
+}
